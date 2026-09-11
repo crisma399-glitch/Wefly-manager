@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WE FLY Manager V1</title>
+<style>
+:root{--g:#087f72;--g2:#0aa59a;--bg:#f5f7f8;--card:#fff;--text:#172126;--muted:#6d7b80;--line:#e2e8ea}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--g),var(--g2));color:white;padding:22px 18px 18px;position:sticky;top:0;z-index:5}
+.brand{font-size:21px;font-weight:800}.sub{font-size:12px;opacity:.9;margin-top:3px}
+main{max-width:900px;margin:auto;padding:16px 14px 90px}
+.search{width:100%;border:0;border-radius:14px;padding:14px 16px;font-size:16px;margin-top:14px;outline:none}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 6px;font-weight:700}.tab.active{background:#e8f7f5;color:var(--g);border-color:#b9e4df}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,input,textarea{border:1px solid var(--line);border-radius:11px;padding:11px;font-size:15px;background:white;width:100%}
+select.small{width:auto}.btn{border:0;border-radius:11px;padding:10px 13px;font-weight:700;cursor:pointer}.primary{background:var(--g);color:white}.ghost{background:#eef3f4;color:#344247}.danger{background:#fff0f0;color:#a33}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0;box-shadow:0 2px 8px #00000008}
+.code{font-size:12px;color:var(--g);font-weight:800}.title{font-size:17px;font-weight:800;margin:5px 0}.meta{font-size:13px;color:var(--muted);line-height:1.7}.price{font-size:19px;font-weight:900;margin-top:5px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.actions .btn{font-size:12px}
+h2{font-size:18px;margin:8px 0 12px}.empty{text-align:center;color:var(--muted);padding:30px}
+.fab{position:fixed;right:18px;bottom:20px;background:var(--g);color:#fff;border:0;border-radius:50px;padding:14px 18px;font-weight:800;box-shadow:0 5px 20px #0003}
+.modal{display:none;position:fixed;inset:0;background:#0008;z-index:20;padding:18px;overflow:auto}.modal.show{display:block}.sheet{background:white;max-width:620px;margin:3vh auto;border-radius:18px;padding:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
+label{font-size:12px;font-weight:700;color:#536267}.count{font-size:13px;color:var(--muted);margin-bottom:8px}
+.agentname{font-size:17px;font-weight:800}.tag{display:inline-block;background:#e8f7f5;color:var(--g);border-radius:20px;padding:4px 8px;font-size:11px;margin:3px 3px 0 0}
+textarea{min-height:260px;line-height:1.55}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="brand">WE FLY Manager</div><div class="sub">โปรแกรมทัวร์ • สร้างโพสต์ขาย • สมุดเอเจนต์</div><input id="globalSearch" class="search" placeholder="🔎 ค้นหารหัสทัวร์ เมือง สายการบิน หรือเอเจนต์..."></header>
+<main>
+<div class="tabs">
+<button class="tab active" onclick="switchTab('tours',this)">✈️ โปรแกรม</button>
+<button class="tab" onclick="switchTab('post',this)">📝 สร้างโพสต์</button>
+<button class="tab" onclick="switchTab('agents',this)">👤 เอเจนต์</button>
+</div>
+
+<section id="tours">
+<div class="row">
+<select id="countryFilter" class="small" onchange="renderTours()"><option value="">ทุกประเทศ</option></select>
+<select id="statusFilter" class="small" onchange="renderTours()"><option value="">ทุกสถานะ</option><option>กำลังขาย</option><option>หมดพีเรียด</option></select>
+</div>
+<div id="tourCount" class="count"></div><div id="tourList"></div>
+</section>
+
+<section id="post" style="display:none">
+<h2>สร้างโพสต์ขาย</h2>
+<div class="card">
+<label>เลือกโปรแกรม</label><select id="postTour" onchange="makePost()"></select>
+<label>หัวขาย / ข้อความเปิด</label><input id="hook" value="🔥 โปรแกรมน่าเที่ยว มาแล้ว!" oninput="makePost()">
+<label>ข้อความโพสต์</label><textarea id="postText"></textarea>
+<div class="actions"><button class="btn primary" onclick="copyPost()">📋 คัดลอกโพสต์</button></div>
+</div>
+</section>
+
+<section id="agents" style="display:none">
+<div id="agentCount" class="count"></div><div id="agentList"></div>
+</section>
+</main>
+<button id="fab" class="fab" onclick="openAdd()">＋ เพิ่มโปรแกรม</button>
+
+<div id="tourModal" class="modal"><div class="sheet">
+<h2>เพิ่มโปรแกรมทัวร์</h2><div class="grid">
+<div><label>รหัสทัวร์</label><input id="fcode"></div><div><label>ประเทศ</label><input id="fcountry" placeholder="เช่น จีน"></div>
+<div class="full"><label>ชื่อโปรแกรม</label><input id="fname"></div>
+<div><label>เมือง/เส้นทาง</label><input id="fcity"></div><div><label>สายการบิน</label><input id="fairline"></div>
+<div><label>ช่วงเดินทาง</label><input id="fdate"></div><div><label>ราคาเริ่มต้น</label><input id="fprice" type="number"></div>
+<div><label>จำนวนวัน</label><input id="fdays" placeholder="5 วัน 3 คืน"></div><div><label>สถานะ</label><select id="fstatus"><option>กำลังขาย</option><option>หมดพีเรียด</option></select></div>
+<div class="full"><label>PDF URL</label><input id="fpdf"></div><div class="full"><label>Word URL</label><input id="fword"></div><div class="full"><label>Banner URL</label><input id="fbanner"></div>
+</div><div class="actions"><button class="btn primary" onclick="saveTour()">บันทึก</button><button class="btn ghost" onclick="closeModals()">ยกเลิก</button></div>
+</div></div>
+
+<div id="agentModal" class="modal"><div class="sheet">
+<h2>เพิ่มข้อมูลเอเจนต์</h2><div class="grid">
+<div><label>ชื่อเอเจนต์/บริษัท</label><input id="aname"></div><div><label>ผู้ติดต่อ</label><input id="acontact"></div>
+<div><label>เบอร์โทร</label><input id="aphone"></div><div><label>LINE</label><input id="aline"></div>
+<div class="full"><label>ที่อยู่</label><input id="aaddress"></div><div><label>จังหวัด</label><input id="aprovince"></div>
+<div><label>Facebook Page</label><input id="afb"></div><div><label>Website</label><input id="aweb"></div>
+<div class="full"><label>หมายเหตุ</label><input id="anote" placeholder="เช่น ขายจีนดี / เน้นกรุ๊ปเหมา"></div>
+</div><div class="actions"><button class="btn primary" onclick="saveAgent()">บันทึก</button><button class="btn ghost" onclick="closeModals()">ยกเลิก</button></div>
+</div></div>
+
+<script>
+const seedTours=[
+{code:"WF-VZTFU0126-01",country:"จีน",name:"เฉิงตู ภูเขาสี่ดรุณี ปี้เผิงโกว จิ่วจ้ายโกว",city:"เฉิงตู จิ่วจ้ายโกว",airline:"Thai Vietjet Air (VZ)",date:"20 ต.ค. 69 - 03 ธ.ค. 69",price:0,days:"6 วัน 5 คืน",status:"กำลังขาย",pdf:"https://wefly.co.th/doc/WF-VZTFU0126-01",word:"https://wefly.co.th/word/WF-VZTFU0126-01",banner:"https://wefly.co.th/banner/WF-VZTFU0126-01"},
+{code:"WF-SLRMQ0126",country:"ไต้หวัน",name:"Taiwan Alisan Taiwan Ali-Sunrise 2027",city:"อาลีซาน",airline:"Thai Lion Air (SL)",date:"30 ธ.ค. 69 - 03 ม.ค. 70",price:0,days:"5 วัน",status:"กำลังขาย",pdf:"https://wefly.co.th/doc/WF-SLRMQ0126",word:"https://wefly.co.th/word/WF-SLRMQ0126",banner:"https://wefly.co.th/banner/WF-SLRMQ0126"},
+{code:"WF-VNHAN0126",country:"เวียดนาม",name:"เวียดนามเหนือ ซาปา ฮานอย SAPA SCENIC ESCAPE",city:"ซาปา ฮานอย",airline:"Vietnam Airlines (VN)",date:"05 พ.ย. 69 - 28 ธ.ค. 69",price:0,days:"4 วัน 3 คืน",status:"กำลังขาย",pdf:"https://wefly.co.th/doc/WF-VNHAN0126",word:"https://wefly.co.th/word/WF-VNHAN0126",banner:"https://wefly.co.th/banner/WF-VNHAN0126"}
+];
+let tours=JSON.parse(localStorage.getItem("wf_tours_v1")||"null")||seedTours;
+let agents=JSON.parse(localStorage.getItem("wf_agents_v1")||"null")||[];
+let current="tours";
+const $=id=>document.getElementById(id);
+function persist(){localStorage.setItem("wf_tours_v1",JSON.stringify(tours));localStorage.setItem("wf_agents_v1",JSON.stringify(agents))}
+function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function switchTab(id,btn){["tours","post","agents"].forEach(x=>$(x).style.display=x===id?"block":"none");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");current=id;$("fab").textContent=id==="agents"?"＋ เพิ่มเอเจนต์":"＋ เพิ่มโปรแกรม";$("fab").style.display=id==="post"?"none":"block";renderAll()}
+$("globalSearch").addEventListener("input",renderAll);
+function renderAll(){renderTours();renderAgents();fillPost()}
+function fillCountries(){let v=$("countryFilter").value;let cs=[...new Set(tours.map(x=>x.country).filter(Boolean))].sort();$("countryFilter").innerHTML='<option value="">ทุกประเทศ</option>'+cs.map(x=>`<option ${x===v?"selected":""}>${esc(x)}</option>`).join("")}
+function renderTours(){fillCountries();let q=$("globalSearch").value.toLowerCase(),c=$("countryFilter").value,s=$("statusFilter").value;let arr=tours.filter(t=>(!c||t.country===c)&&(!s||t.status===s)&&JSON.stringify(t).toLowerCase().includes(q));$("tourCount").textContent=`พบ ${arr.length} โปรแกรม จากทั้งหมด ${tours.length}`;$("tourList").innerHTML=arr.length?arr.map((t,i)=>`<div class="card"><div class="code">${esc(t.code)} • ${esc(t.country)}</div><div class="title">${esc(t.name)}</div><div class="meta">📍 ${esc(t.city)}<br>📅 ${esc(t.date)} • ${esc(t.days)}<br>✈️ ${esc(t.airline)} • ${esc(t.status)}</div>${t.price?`<div class="price">฿${Number(t.price).toLocaleString()}</div>`:""}<div class="actions">${linkBtn(t.pdf,"PDF")}${linkBtn(t.word,"Word")}${linkBtn(t.banner,"Banner")}<button class="btn primary" onclick="quickPost('${t.code}')">สร้างโพสต์</button><button class="btn danger" onclick="delTour('${t.code}')">ลบ</button></div></div>`).join(""):'<div class="empty">ไม่พบโปรแกรม</div>'}
+function linkBtn(url,label){return url?`<button class="btn ghost" onclick="window.open('${esc(url)}','_blank')">${label}</button>`:""}
+function fillPost(){let old=$("postTour").value;$("postTour").innerHTML=tours.map(t=>`<option value="${esc(t.code)}">${esc(t.code)} — ${esc(t.name)}</option>`).join("");if(tours.some(t=>t.code===old))$("postTour").value=old;makePost()}
+function makePost(){let t=tours.find(x=>x.code===$("postTour").value);if(!t)return;let hook=$("hook").value;let price=t.price?`\n🔥 ราคาเริ่มต้น ${Number(t.price).toLocaleString()} บาท`:"";$("postText").value=`${hook}\n\n✈️ ${t.name}\n📋 รหัสทัวร์ : ${t.code}\n🌏 ${t.country} • ${t.city}\n🗓 ${t.date}\n⏱ ${t.days}\n✈️ สายการบิน : ${t.airline}${price}\n\n📂 ดาวน์โหลดโปรแกรม:\n📕 PDF: ${t.pdf||"-"}\n📘 Word: ${t.word||"-"}\n🌁 Banner: ${t.banner||"-"}\n\nสอบถามรายละเอียดและสำรองที่นั่งได้เลยค่ะ 💚🩵`}
+async function copyPost(){try{await navigator.clipboard.writeText($("postText").value);alert("คัดลอกโพสต์แล้ว")}catch(e){$("postText").select();document.execCommand("copy");alert("คัดลอกโพสต์แล้ว")}}
+function quickPost(code){document.querySelectorAll(".tab")[1].click();$("postTour").value=code;makePost()}
+function renderAgents(){let q=$("globalSearch").value.toLowerCase();let arr=agents.filter(a=>JSON.stringify(a).toLowerCase().includes(q));$("agentCount").textContent=`มีเอเจนต์ ${agents.length} ราย • พบ ${arr.length} ราย`;$("agentList").innerHTML=arr.length?arr.map((a,i)=>`<div class="card"><div class="agentname">${esc(a.name)}</div><div class="meta">${a.contact?"👤 "+esc(a.contact)+"<br>":""}${a.phone?"📞 "+esc(a.phone)+"<br>":""}${a.line?"LINE: "+esc(a.line)+"<br>":""}${a.address?"📍 "+esc(a.address)+" "+esc(a.province||"")+"<br>":""}</div>${a.note?`<span class="tag">${esc(a.note)}</span>`:""}<div class="actions">${a.fb?`<button class="btn ghost" onclick="window.open('${esc(a.fb)}','_blank')">Facebook</button>`:""}${a.web?`<button class="btn ghost" onclick="window.open('${esc(a.web)}','_blank')">Website</button>`:""}<button class="btn danger" onclick="delAgent(${i})">ลบ</button></div></div>`).join(""):'<div class="empty">ยังไม่มีข้อมูลเอเจนต์<br>กด “＋ เพิ่มเอเจนต์” เพื่อเริ่มบันทึก</div>'}
+function openAdd(){if(current==="agents")$("agentModal").classList.add("show");else $("tourModal").classList.add("show")}
+function closeModals(){document.querySelectorAll(".modal").forEach(x=>x.classList.remove("show"))}
+function saveTour(){let t={code:$("fcode").value.trim(),country:$("fcountry").value.trim(),name:$("fname").value.trim(),city:$("fcity").value.trim(),airline:$("fairline").value.trim(),date:$("fdate").value.trim(),price:+$("fprice").value||0,days:$("fdays").value.trim(),status:$("fstatus").value,pdf:$("fpdf").value.trim(),word:$("fword").value.trim(),banner:$("fbanner").value.trim()};if(!t.code||!t.name)return alert("กรุณาใส่รหัสทัวร์และชื่อโปรแกรม");if(tours.some(x=>x.code===t.code))return alert("รหัสทัวร์นี้มีอยู่แล้ว");tours.unshift(t);persist();closeModals();renderAll();document.querySelectorAll("#tourModal input").forEach(x=>x.value="")}
+function saveAgent(){let a={name:$("aname").value.trim(),contact:$("acontact").value.trim(),phone:$("aphone").value.trim(),line:$("aline").value.trim(),address:$("aaddress").value.trim(),province:$("aprovince").value.trim(),fb:$("afb").value.trim(),web:$("aweb").value.trim(),note:$("anote").value.trim()};if(!a.name)return alert("กรุณาใส่ชื่อเอเจนต์/บริษัท");agents.unshift(a);persist();closeModals();renderAll();document.querySelectorAll("#agentModal input").forEach(x=>x.value="")}
+function delTour(code){if(confirm("ลบโปรแกรมนี้?")){tours=tours.filter(x=>x.code!==code);persist();renderAll()}}
+function delAgent(i){if(confirm("ลบข้อมูลเอเจนต์นี้?")){agents.splice(i,1);persist();renderAll()}}
+renderAll();
+</script>
+</body></html>
