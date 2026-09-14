@@ -251,7 +251,7 @@ function departureLabel(text){
  return n===Infinity?"":n===0?" • เดินทางวันนี้":` • อีก ${n} วัน`
 }
 
-function renderTours(){
+function renderTours()updateDashboard();}
 fillCountries();fillAirlines();
 let q=$("globalSearch").value.toLowerCase(),c=$("countryFilter").value,a=$("airlineFilter").value,s=$("statusFilter").value;
 let arr=tours.filter(t=>(!c||t.country===c)&&(!a||t.airline===a)&&(!s||t.status===s)&&(!workStatusFilter||(t.workstatus||"")===workStatusFilter)&&JSON.stringify(t).toLowerCase().includes(q));
