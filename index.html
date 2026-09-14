@@ -271,8 +271,7 @@ $("tourList").innerHTML=arr.length?arr.map((t,i)=>`<div class="card">
 <div class="meta">
 📍 ${esc(t.city)}<br>
 📅 ${esc(t.date)}${departureLabel(t.date)} • ${esc(t.days)}<br>
-✈️ ${esc(t.airline)} • ${esc(t.status)updateDashboard();
-}
+✈️ ${esc(t.airline)} • ${esc(t.status)}
 ${t.baggage?`<br>🧳 ${esc(t.baggage)}`:""}${t.tip?` • ทิป ${Number(t.tip).toLocaleString()} บาท`:""}
 ${t.highlights?`<br>⭐ ${esc(t.highlights)}`:""}
 ${t.salesnote?`<br>💡 ${esc(t.salesnote)}`:""}
